@@ -1,0 +1,29 @@
+{
+    "VUsersAmount": 100,
+    "ThinkTime": 0,
+    "TotalTestTime": 5,
+    "TimeOut" : 10,
+
+    "Requests" : [
+        {
+            "URL" : "https://httpbin.org/post",
+            "TYPE" : "POST",
+            "BODY" : {
+                "name" : "Meu nome",
+                "description" : "This is an example of a post with parameters"
+            }
+        },
+        {
+            "URL" : "https://httpbin.org/get",
+            "TYPE" : "GET"
+        },
+        {
+            "URL" : "https://httpbin.org/headers",
+            "TYPE" : "GET"
+        },
+        {
+            "URL" : "https://httpbin.org/bytes/50",
+            "TYPE" : "GET"
+        }
+    ]
+}
