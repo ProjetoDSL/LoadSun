@@ -1,5 +1,5 @@
 # LoadSun
-LoadSun - Proposal of a Tool to Generate Workloads on Web Applications
+LoadSun - A Tool to Generate Workloads on Web Applications.
 
 ## Getting Started
 
@@ -59,7 +59,7 @@ That's it.
 * **Victor Costa** - *Initial work* - [VictorSCosta](https://github.com/VictorSCosta)
 * **Maicon Bernardino** - *Conception* - [maiconbernardino](https://github.com/maiconbernardino)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/ProjetoDSL/LoadSun/contributors) who participated in this project.
 
 ## License
 
