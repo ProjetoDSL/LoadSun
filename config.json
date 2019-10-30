@@ -8,10 +8,16 @@
         {
             "URL" : "https://httpbin.org/post",
             "TYPE" : "POST",
-            "BODY" : {
-                "name" : "Meu nome",
-                "description" : "This is an example of a post with parameters"
-            }
+            "BODIES" : [
+              {
+                "name" : "My name",
+                "description" : "This is an example of a post with parameterssssssssss"
+              },
+              {
+                "name" : "Not My name",
+                "description" : "This is NOT an example of a post with parameters"
+              }
+            ]
         },
         {
             "URL" : "https://httpbin.org/get",
