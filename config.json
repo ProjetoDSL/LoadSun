@@ -1,7 +1,10 @@
 {
-  "VUsersAmount": 2,
-  "TotalTestTime": 5,
+  "VUsersAmount": 100,
+  "TotalTestTime": 120,
   "TimeOut": 10,
+  "RampUpInterval": 2,
+  "VUserRampUpAmount": 10,
+
   "Requests": [
     {
       "URL": "https://httpbin.org/post",

@@ -19,10 +19,12 @@ import (
 )
 
 type Configuration struct {
-	VUsersAmount  int
-	TotalTestTime int
-	TimeOut       int
-	Requests      []Request
+	VUsersAmount      int
+	TotalTestTime     int
+	TimeOut           int
+	RampUpInterval    int
+	VUserRampUpAmount int
+	Requests          []Request
 }
 
 type Request struct {
@@ -49,6 +51,8 @@ func main() {
 	totalTestTime := time.Duration(config.TotalTestTime) * time.Second
 	timeout := time.Duration(config.TimeOut) * time.Second
 	requests := config.Requests
+	//rampUpInterval := time.Duration(config.RampUpInterval) * time.Second
+	//vUserRampUpAmount := config.VUserRampUpAmount
 
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(vUsersAmount)
@@ -156,6 +160,10 @@ func main() {
 			defer waitGroup.Done()
 
 		}(i)
+		//if vUserRampUpAmount == i {
+		//	fmt.Printf("\n\n ADDED %v VUsers at %v \n\n", vUserRampUpAmount, time.Now())
+		//	time.Sleep(rampUpInterval)
+		//}
 	}
 
 	// Wait for all goroutines to finish running and sync.
