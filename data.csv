@@ -1,4 +1,6 @@
 name,lastname,login,password,description,nome_da_coluna
-Victor,Costa,vyctoro,abc123,student,exampleVictor
-Gustavo,Girardon,gutinx,123abc,student,exampleGustavo
-Maicon,Bernardino,maiquinho,senhasecreta,professor,exampleMaicon
+Victor,Costa,vyctoro,senhaVictor,studentVictor,exampleVictor
+Gustavo,Girardon,gutinx,senhaGuto,studentGustavo,exampleGustavo
+Maicon,Bernardino,maiquinho,senhaMaicon,professor,exampleMaicon
+Jugger,Naut,juggernautin,senhaJugger,secretario,exampleJugger
+Allan,Din,allandin,senhaAllan,funcionario,exampleAllan

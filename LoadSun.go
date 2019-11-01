@@ -2,13 +2,15 @@ package main
 
 import (
 	"bytes"
+	crypto_rand "crypto/rand"
+	"encoding/binary"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
+	math_rand "math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -28,6 +30,15 @@ type Request struct {
 	URL       string
 	BODY      map[string]string
 	ThinkTime int
+}
+
+func init() {
+	var b [8]byte
+	_, err := crypto_rand.Read(b[:])
+	if err != nil {
+		panic("cannot seed math/rand package with cryptographically secure random number generator")
+	}
+	math_rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
 }
 
 func main() {
@@ -57,10 +68,15 @@ func main() {
 			}
 
 			for totalTestTime >= time.Since(StartTime) {
+				// selectedLines saves the selected line number of the column
+				selectedLines := make(map[string]int)
 				if len(requests) <= requestStep {
 					requestStep = 0
 
-					// resetar sameastype aqui
+					// resets the list of selected line numbers here
+					for k := range selectedLines {
+						delete(selectedLines, k)
+					}
 				}
 
 				request := requests[requestStep]
@@ -88,7 +104,21 @@ func main() {
 
 						parameters := CSVToMap(csvfile)
 
-						line := rand.Intn(len(parameters))
+						var line int
+						switch method {
+						case "random":
+
+							randomInt := math_rand.Intn(len(parameters))
+							line = randomInt
+							selectedLines[column] = line
+							fmt.Printf("random selected line for %s = %v \n parameter size %v \n", column, line, len(parameters))
+						case "sameastype":
+							sameascolumnName := parametersConfig[3]
+							line = selectedLines[sameascolumnName]
+							fmt.Printf("selected line for %s = %v \n", column, line)
+						case "sequencial":
+						}
+
 						request.BODY[key] = parameters[line][column]
 					}
 				}

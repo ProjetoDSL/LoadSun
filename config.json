@@ -1,41 +1,41 @@
 {
-    "VUsersAmount": 100,
-    "TotalTestTime": 5,
-    "TimeOut" : 10,
-
-    "Requests" : [
-        {
-            "URL" : "https://httpbin.org/post",
-            "TYPE" : "POST",
-            "BODY" :
-                {
-                    "example" : "{data.nome_da_coluna.random}",
-                    "name" : "{data.name.random}",
-                    "description" : "{data.description.sameastype.name}",
-                    "teste" : "teste1"
-                },
-            "THINKTIME" : 0
-        },
-        {
-            "URL" : "https://httpbin.org/get",
-            "TYPE" : "GET",
-            "THINKTIME" : 0
-        },
-        {
-            "URL" : "https://httpbin.org/headers",
-            "TYPE" : "GET",
-            "THINKTIME" : 0
-        },
-        {
-            "URL" : "https://httpbin.org/bytes/50",
-            "TYPE" : "GET",
-            "THINKTIME" : 0
-        },
-        {
-          "URL" : "https://viacep.com.br/ws/97590000/json/?callback=?",
-          "TYPE" : "GET",
-          "THINKTIME" : 0
-        }
-
-    ]
+  "VUsersAmount": 2,
+  "TotalTestTime": 5,
+  "TimeOut": 10,
+  "Requests": [
+    {
+      "URL": "https://httpbin.org/post",
+      "TYPE": "POST",
+      "BODY": {
+        "login": "{data.login.random}",
+        "password": "{data.password.sameastype.login}"
+      },
+      "THINKTIME": 2
+    },
+    {
+      "URL": "https://httpbin.org/get",
+      "TYPE": "GET",
+      "THINKTIME": 0
+    },
+    {
+      "URL": "https://httpbin.org/headers",
+      "TYPE": "GET",
+      "THINKTIME": 0
+    },
+    {
+      "URL": "https://httpbin.org/bytes/50",
+      "TYPE": "GET",
+      "THINKTIME": 0
+    },
+    {
+      "URL": "https://httpbin.org/post",
+      "TYPE": "POST",
+      "BODY": {
+        "example": "{data.nome_da_coluna.random}",
+        "description": "{data.description.random}",
+        "teste": "teste1"
+      },
+      "THINKTIME": 2
+    }
+  ]
 }
