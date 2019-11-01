@@ -2,29 +2,32 @@ package main
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
 
 type Configuration struct {
 	VUsersAmount  int
-	ThinkTime     int
 	TotalTestTime int
 	TimeOut       int
 	Requests      []Request
 }
 
 type Request struct {
-	TYPE   string
-	URL    string
-	BODIES []map[string]string
+	TYPE      string
+	URL       string
+	BODY      map[string]string
+	ThinkTime int
 }
 
 func main() {
@@ -32,7 +35,6 @@ func main() {
 	config := getConfig()
 
 	vUsersAmount := config.VUsersAmount
-	thinkTime := time.Duration(config.ThinkTime) * time.Second
 	totalTestTime := time.Duration(config.TotalTestTime) * time.Second
 	timeout := time.Duration(config.TimeOut) * time.Second
 	requests := config.Requests
@@ -40,14 +42,14 @@ func main() {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(vUsersAmount)
 
-	// conta o total de requests
+	// counts the total of requests made
 	requestCount := 0
 
-	// Salva o timestamp incial para determinar o tempo total de teste
+	// Saves initial timestamp to determine total testing time
 	StartTime := time.Now()
 	for i := 0; i < vUsersAmount; i++ {
 		go func(i int) {
-			// contador para saber em qual REQUEST esta
+			// counter to manage which REQUEST is being made
 			requestStep := 0
 
 			client := &http.Client{
@@ -63,53 +65,61 @@ func main() {
 
 				request := requests[requestStep]
 
-				// declara um httpRequest apenas para mudar dentro do if, dependendo se tem BODY ou não,
-				// os parametros aqui declarados não são utilizados.
-				httpRequest, err := http.NewRequest("", "", nil)
+				for key, value := range request.BODY {
+					// check if the parameter is surrounded in curly brackets {}
+					if strings.HasPrefix(value, "{") && strings.HasSuffix(value, "}") {
 
-				// verifica se a request tem alguma coisa no array de bodies para criar um httpRequest COM ou SEM body.
-				bodiesSize := len(requests[requestStep].BODIES)
-				if bodiesSize > 0 {
-					selectedBody := requests[requestStep].BODIES[rand.Intn(bodiesSize)]
-					requestBody, err := json.Marshal(selectedBody)
+						// delete the curly brackets
+						value = strings.Replace(value, "{", "", -1)
+						value = strings.Replace(value, "}", "", -1)
 
-					httpRequest, err = http.NewRequest(request.TYPE, request.URL, bytes.NewBuffer(requestBody))
-					httpRequest.Header.Set("Content-type", "application/json")
+						// split the parameter by dots "."
+						parametersConfig := strings.Split(value, ".")
 
-					// Se der erro da um log no erro
-					if err != nil {
-						log.Fatalln(err)
-					}
-				} else {
-					httpRequest, err = http.NewRequest(request.TYPE, request.URL, nil)
-					httpRequest.Header.Set("Content-type", "application/json")
+						fileName := parametersConfig[0] + ".csv"
+						column := parametersConfig[1]
+						method := parametersConfig[2]
 
-					// Se der erro da um log no erro
-					if err != nil {
-						log.Fatalln(err)
+						fmt.Println(fileName, column, method)
+
+						// open the file
+						csvfile, err := os.Open(fileName)
+						checkError("Error opening .csv file!", err)
+
+						parameters := CSVToMap(csvfile)
+
+						line := rand.Intn(len(parameters))
+						request.BODY[key] = parameters[line][column]
 					}
 				}
 
-				// o cliente faz a requisição.
+				requestBody, err := json.Marshal(request.BODY)
+				checkError("Error marshaling json!", err)
+
+				httpRequest, err := http.NewRequest(request.TYPE, request.URL, bytes.NewBuffer(requestBody))
+				httpRequest.Header.Set("Content-type", "application/json")
+
+				// Logs the error
+				checkError("Error setting http request with parameters!", err)
+
+				// The client does the request.
 				resp, err := client.Do(httpRequest)
 
-				// Se der erro da um log no erro.
-				if err != nil {
-					log.Fatalln(err)
-				}
+				// Logs the error
+				checkError("Error doing http request!", err)
 
 				requestCount++
 
-				// deve-se fechar o corpo da resposta quando não se for utiliza-la mais.
+				// The body of the response should be closed when it is no longer used.
 				defer resp.Body.Close()
 
 				body, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					log.Fatalln(err)
-				}
+				checkError("Error reading http response body!", err)
 
-				log.Printf("%s VUser id: %v\n\n", string(body), i)
+				log.Printf("%s VUser id: %v, Request step: %v\n\n", string(body), i, requestStep)
 				requestStep++
+
+				thinkTime := time.Duration(request.ThinkTime) * time.Second
 				time.Sleep(thinkTime)
 			}
 
@@ -118,16 +128,17 @@ func main() {
 		}(i)
 	}
 
-	// Espera todas as goroutines terminarem de executar e sincroniza.
+	// Wait for all goroutines to finish running and sync.
 	waitGroup.Wait()
 
-	// função defer q é executada no final da main informando o numero total de testes e o tempo de teste.
+	// defer function that is executed at the end of the main function informing the total number of tests and the total test time.
 	defer func() {
 		fmt.Printf("All tests finished in %s.\n", time.Since(StartTime))
 		fmt.Printf("%v total requests.\n", requestCount)
 	}()
 }
 
+// getConfig reads the config.json file and returns a Configuration instance.
 func getConfig() Configuration {
 	file, _ := os.Open("config.json")
 	defer file.Close()
@@ -137,4 +148,37 @@ func getConfig() Configuration {
 		fmt.Println("error:", err)
 	}
 	return config
+}
+
+// checkError does error handling.
+func checkError(msg string, err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+// CSVToMap takes a reader and returns an array of dictionaries, using the header row as the keys
+func CSVToMap(reader io.Reader) []map[string]string {
+	r := csv.NewReader(reader)
+	rows := []map[string]string{}
+	var header []string
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		if header == nil {
+			header = record
+		} else {
+			dict := map[string]string{}
+			for i := range header {
+				dict[header[i]] = record[i]
+			}
+			rows = append(rows, dict)
+		}
+	}
+	return rows
 }
