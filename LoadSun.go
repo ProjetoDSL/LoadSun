@@ -67,8 +67,12 @@ func main() {
 			// counter to manage which REQUEST is being made
 			requestStep := 0
 
-			client := &http.Client{
-				Timeout: timeout,
+			var netTransport = &http.Transport{
+				TLSHandshakeTimeout: 5 * time.Second,
+			}
+			var client = &http.Client{
+				Timeout:   timeout,
+				Transport: netTransport,
 			}
 
 			for totalTestTime >= time.Since(StartTime) {
@@ -144,13 +148,16 @@ func main() {
 
 				requestCount++
 
-				// The body of the response should be closed when it is no longer used.
-				defer resp.Body.Close()
+				if err == nil {
+					// The body of the response should be closed when it is no longer used.
+					defer resp.Body.Close()
 
-				body, err := ioutil.ReadAll(resp.Body)
-				checkError("Error reading http response body!", err)
+					body, err := ioutil.ReadAll(resp.Body)
+					checkError("Error reading http response body!", err)
 
-				log.Printf("%s VUser id: %v, Request step: %v\n\n", string(body), i, requestStep)
+					log.Printf("%s VUser id: %v, Request step: %v\n\n", string(body), i, requestStep)
+				}
+
 				requestStep++
 
 				thinkTime := time.Duration(request.ThinkTime) * time.Second
@@ -191,7 +198,7 @@ func getConfig() Configuration {
 // checkError does error handling.
 func checkError(msg string, err error) {
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 	}
 }
 
@@ -205,9 +212,7 @@ func CSVToMap(reader io.Reader) []map[string]string {
 		if err == io.EOF {
 			break
 		}
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkError("error reading file", err)
 		if header == nil {
 			header = record
 		} else {

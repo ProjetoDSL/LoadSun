@@ -1,13 +1,13 @@
 {
-  "VUsersAmount": 100,
-  "TotalTestTime": 120,
+  "VUsersAmount": 500,
+  "TotalTestTime": 60,
   "TimeOut": 10,
   "RampUpInterval": 2,
   "VUserRampUpAmount": 10,
 
   "Requests": [
     {
-      "URL": "https://httpbin.org/post",
+      "URL": "http://35.185.60.136/public/post",
       "TYPE": "POST",
       "BODY": {
         "login": "{data.login.random}",
@@ -16,22 +16,12 @@
       "THINKTIME": 2
     },
     {
-      "URL": "https://httpbin.org/get",
+      "URL": "http://35.185.60.136/public/get",
       "TYPE": "GET",
-      "THINKTIME": 0
+      "THINKTIME": 1
     },
     {
-      "URL": "https://httpbin.org/headers",
-      "TYPE": "GET",
-      "THINKTIME": 0
-    },
-    {
-      "URL": "https://httpbin.org/bytes/50",
-      "TYPE": "GET",
-      "THINKTIME": 0
-    },
-    {
-      "URL": "https://httpbin.org/post",
+      "URL": "http://35.185.60.136/public/any",
       "TYPE": "POST",
       "BODY": {
         "example": "{data.nome_da_coluna.random}",
