@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	math_rand "math/rand"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -41,7 +41,10 @@ func init() {
 		panic("cannot seed math/rand package with cryptographically secure random number generator")
 	}
 	math_rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
+
 }
+
+var timeoutCount = 0
 
 func main() {
 
@@ -63,7 +66,7 @@ func main() {
 	// Saves initial timestamp to determine total testing time
 	StartTime := time.Now()
 	for i := 0; i < vUsersAmount; i++ {
-		go func(i int) {
+		go func(vUserId int) {
 			// counter to manage which REQUEST is being made
 			requestStep := 0
 
@@ -115,7 +118,6 @@ func main() {
 						var line int
 						switch method {
 						case "random":
-
 							randomInt := math_rand.Intn(len(parameters))
 							line = randomInt
 							selectedLines[column] = line
@@ -136,6 +138,8 @@ func main() {
 
 				httpRequest, err := http.NewRequest(request.TYPE, request.URL, bytes.NewBuffer(requestBody))
 				httpRequest.Header.Set("Content-type", "application/json")
+				userAgent := fmt.Sprintf("[LoadSun's VUser ID - %v]", vUserId)
+				httpRequest.Header.Set("User-Agent", userAgent)
 
 				// Logs the error
 				checkError("Error setting http request with parameters!", err)
@@ -152,10 +156,10 @@ func main() {
 					// The body of the response should be closed when it is no longer used.
 					defer resp.Body.Close()
 
-					body, err := ioutil.ReadAll(resp.Body)
-					checkError("Error reading http response body!", err)
+					//body, err := ioutil.ReadAll(resp.Body)
+					//checkError("Error reading http response body!", err)
 
-					log.Printf("%s VUser id: %v, Request step: %v\n\n", string(body), i, requestStep)
+					log.Printf(" HTTP Response Status: %-3v %-3s  %-3v %-5v  Request step: %-4v \n", resp.StatusCode, http.StatusText(resp.StatusCode), "VUser id:", vUserId, requestStep)
 				}
 
 				requestStep++
@@ -179,7 +183,9 @@ func main() {
 	// defer function that is executed at the end of the main function informing the total number of tests and the total test time.
 	defer func() {
 		fmt.Printf("All tests finished in %s.\n", time.Since(StartTime))
-		fmt.Printf("%v total requests.\n", requestCount)
+		fmt.Printf("%-6v total requests.\n", requestCount)
+		fmt.Printf("%-6v timeouts.\n", timeoutCount)
+		fmt.Printf("%-6v requests excluding timeouts.\n", requestCount-timeoutCount)
 	}()
 }
 
@@ -199,6 +205,9 @@ func getConfig() Configuration {
 func checkError(msg string, err error) {
 	if err != nil {
 		log.Print(err)
+	}
+	if err, ok := err.(net.Error); ok && err.Timeout() {
+		timeoutCount++
 	}
 }
 

@@ -1,5 +1,5 @@
 {
-  "VUsersAmount": 500,
+  "VUsersAmount": 300,
   "TotalTestTime": 60,
   "TimeOut": 10,
   "RampUpInterval": 2,
